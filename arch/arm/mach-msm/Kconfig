@@ -3049,6 +3049,13 @@ config MSM_SECBOOT
 	bool "MSM Secboot verification driver"
 	help
 	Driver to expose secureboot status
+
+
+config PVS_LEVEL_INTERFACE
+	bool "Expose PVS level information in sys fs (Boeffla-Kernel)"
+	help
+	 Allow PVS level to be shown in Boeffla-Config app
+
 endif
 
 config KERNEL_TEXT_MPU_PROT
