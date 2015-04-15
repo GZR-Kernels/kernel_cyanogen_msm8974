@@ -327,6 +327,7 @@ static int smpboot_thread_call(struct notifier_block *nfb,
 
 	switch (action & ~CPU_TASKS_FROZEN) {
 
+	case CPU_DOWN_FAILED:
 	case CPU_ONLINE:
 		smpboot_unpark_threads(cpu);
 		break;
