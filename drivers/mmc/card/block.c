@@ -3166,6 +3166,14 @@ static const struct mmc_fixup blk_fixups[] =
 	MMC_FIXUP(CID_NAME_ANY, CID_MANFID_HYNIX, CID_OEMID_ANY, add_quirk_mmc,
 		  MMC_QUIRK_BROKEN_DATA_TIMEOUT),
 
+	/*
+	 * Some devices have issues that requires dummy read
+	 */
+	MMC_FIXUP("SEM16G", CID_MANFID_SANDISK_SEM, CID_OEMID_ANY, add_quirk_mmc,
+		  MMC_QUIRK_BLK_NEED_DUMMY_READ),
+	MMC_FIXUP("SEM32G", CID_MANFID_SANDISK_SEM, CID_OEMID_ANY, add_quirk_mmc,
+		  MMC_QUIRK_BLK_NEED_DUMMY_READ),
+
 	END_FIXUP
 };
 
