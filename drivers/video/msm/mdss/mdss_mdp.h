@@ -466,6 +466,15 @@ struct mdss_overlay_private {
 	struct sw_sync_timeline *vsync_timeline;
 	struct mdss_mdp_vsync_handler vsync_retire_handler;
 	int retire_cnt;
+<<<<<<< HEAD
+=======
+	bool kickoff_released;
+
+	struct kthread_worker worker;
+	struct kthread_work vsync_work;
+	struct task_struct *thread;
+};
+>>>>>>> 80ba4d8... mdss: move to a kthread for vsync_retire_work_handler
 
 	struct kthread_worker worker;
 	struct kthread_work vsync_work;
