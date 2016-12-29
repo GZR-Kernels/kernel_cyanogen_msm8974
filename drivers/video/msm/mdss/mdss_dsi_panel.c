@@ -31,6 +31,12 @@
 
 DEFINE_LED_TRIGGER(bl_led_trigger);
 
+bool display_on = true;
+bool is_display_on()
+{
+	return display_on;
+}
+
 void mdss_dsi_panel_pwm_cfg(struct mdss_dsi_ctrl_pdata *ctrl)
 {
 	ctrl->pwm_bl = pwm_request(ctrl->pwm_lpg_chan, "lcd-bklt");
