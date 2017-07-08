@@ -1426,6 +1426,22 @@ static void msm_otg_notify_charger(struct msm_otg *motg, unsigned mA)
 
 	dev_info(motg->phy.dev, "Avail curr from USB = %u\n", mA);
 
+        #ifdef CONFIG_FORCE_FAST_CHARGE 
+        #define force_fast_charge 1
+             if(force_fast_charge==1)  {
+                 if(mA>=2500){
+                     pr_info("Available current already greater than USB fastcharging current!!!\n");
+                     pr_info("Override of USB charging current cancelled.\n") ;
+                      } else{
+                          mA=2500;
+                          pr_info("USB fast charging is ON!!!\n");
+                                }
+                         dev_info(motg->phy.dev,"Avail curr from USB=%u\n", mA);
+                     }else{
+                        pr_info("USB fast charging is OFF.\n");
+               }
+       #endif    
+
 	/*
 	 *  Use Power Supply API if supported, otherwise fallback
 	 *  to legacy pm8921 API.
