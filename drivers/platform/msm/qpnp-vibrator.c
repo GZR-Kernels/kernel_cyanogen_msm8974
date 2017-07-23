@@ -410,6 +410,8 @@ static int __devinit qpnp_vibrator_probe(struct spmi_device *spmi)
 	if (rc < 0)
 		goto error_create_default;
 
+	device_create_file(vib->timed_dev.dev, &dev_attr_vtg_level);
+
 	vib_dev = vib;
 
 	return 0;
@@ -469,3 +471,4 @@ module_exit(qpnp_vibrator_exit);
 
 MODULE_DESCRIPTION("qpnp vibrator driver");
 MODULE_LICENSE("GPL v2");
+
