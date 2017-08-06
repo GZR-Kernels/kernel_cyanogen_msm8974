@@ -227,7 +227,7 @@ struct zzmoove_profile {
 
 struct zzmoove_profile zzmoove_profiles[] = {
 	{
-		1,		// Default Profile
+		2,		// Default Profile
 		"def",		// default settings as hardcoded in the governor (please don't remove this profile)
 #ifdef ENABLE_AUTO_ADJUST_FREQ
 		0,		// auto_adjust_freq_thresholds (any value=enable, 0=disable)
