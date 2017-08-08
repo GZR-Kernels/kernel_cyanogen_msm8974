@@ -35,9 +35,9 @@
 // #define USE_LCD_NOTIFIER
 
 #include <linux/cpu.h>
-#ifdef USE_LCD_NOTIFIER
-#include <linux/lcd_notify.h>
-#endif /* USE_LCD_NOTIFIER */
+// #ifdef USE_LCD_NOTIFIER
+// #include <linux/lcd_notify.h>
+// #endif /* USE_LCD_NOTIFIER */
 #include <linux/cpufreq.h>
 #if defined(CONFIG_HAS_EARLYSUSPEND) && !defined(DISABLE_POWER_MANAGEMENT)
 #include <linux/earlysuspend.h>
@@ -69,17 +69,16 @@
 #define ENABLE_INPUTBOOSTER			// ZZ: enable/disable inputbooster support
 // #define ENABLE_WORK_RESTARTLOOP		// ZZ: enable/disable restart loop for touchboost (DO NOT ENABLE IN THIS VERSION -> NOT STABLE YET!)
 
-
 #ifdef ENABLE_INPUTBOOSTER
 #include <linux/slab.h>
 #include <linux/input.h>
 #endif /* ENABLE_INPUTBOOSTER */
 
 // Yank: enable/disable sysfs interface to display current zzmoove version
-#define ZZMOOVE_VERSION "develop-24.09.15"
+#define ZZMOOVE_VERSION "develop"
 
 // ZZ: support for 2,4,6 or 8 cores (this will enable/disable hotplug threshold tuneables and limit hotplug max limit tuneable)
-#define MAX_CORES					(3)
+#define MAX_CORES					(2)
 
 // ZZ: enable/disable hotplug support
 #define ENABLE_HOTPLUGGING
@@ -102,7 +101,7 @@
 // ZZ: include profiles header file and set name for 'custom' profile (informational for a changed profile value)
 #ifdef ENABLE_PROFILES_SUPPORT
 #include "cpufreq_zzmoove_profiles.h"
-#define DEF_PROFILE_NUMBER				(2)	// ZZ: default profile number (profile = 2 = 'ybat' = a very good battery/performance balanced)
+#define DEF_PROFILE_NUMBER				(2)	// ZZ: default profile number (profile = 0 = 'none' = tuneable mode)
 static char custom_profile[20] = "custom";			// ZZ: name to show in sysfs if any profile value has changed
 
 // ff: allows tuneables to be tweaked without reverting to "custom" profile
@@ -749,7 +748,7 @@ static struct dbs_tuners {
 // ZZ: set tuneable default values
 } dbs_tuners_ins = {
 #ifdef ENABLE_PROFILES_SUPPORT
-	.profile = "ybat",
+	.profile = "none",
 	.profile_number = DEF_PROFILE_NUMBER,
 	.profile_sticky_mode = DEF_PROFILE_STICKY_MODE,
 #endif /* ENABLE_PROFILES_SUPPORT */
@@ -2613,20 +2612,6 @@ static inline u64 get_cpu_idle_time_jiffy(unsigned int cpu, u64 *wall)
  * ZZ: function has been moved out of governor since kernel version 3.8 and finally moved to cpufreq.c in kernel version 3.11
  *     overruling macro CPU_IDLE_TIME_IN_CPUFREQ included for sources with backported cpufreq implementation
  */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3,8,0) && !defined(CPU_IDLE_TIME_IN_CPUFREQ)
-static inline u64 get_cpu_idle_time(unsigned int cpu, u64 *wall)
-{
-	u64 idle_time = get_cpu_idle_time_us(cpu, NULL);
-
-	if (idle_time == -1ULL)
-		return get_cpu_idle_time_jiffy(cpu, wall);
-	else
-		idle_time += get_cpu_iowait_time_us(cpu, wall);
-
-	return idle_time;
-}
-#endif /* LINUX_VERSION_CODE... */
-
 // keep track of frequency transitions
 static int dbs_cpufreq_notifier(struct notifier_block *nb, unsigned long val, void *data)
 {
@@ -3537,12 +3522,7 @@ static ssize_t store_ignore_nice_load(struct kobject *a, struct attribute *b, co
 	for_each_online_cpu(j) {
 		 struct cpu_dbs_info_s *dbs_info;
 		 dbs_info = &per_cpu(cs_cpu_dbs_info, j);
-		 dbs_info->prev_cpu_idle = get_cpu_idle_time(j,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0) || defined(CPU_IDLE_TIME_IN_CPUFREQ) /* overrule for sources with backported cpufreq implementation */
-		 &dbs_info->prev_cpu_wall, 0);
-#else
-		 &dbs_info->prev_cpu_wall);
-#endif /* LINUX_VERSION_CODE... */
+		 dbs_info->prev_cpu_idle = get_cpu_idle_time(j,&dbs_info->prev_cpu_wall, 0);
 		 if (dbs_tuners_ins.ignore_nice)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 		     dbs_info->prev_cpu_nice = kcpustat_cpu(j).cpustat[CPUTIME_NICE];
@@ -6019,12 +5999,7 @@ static inline int set_profile(int profile_num)
 		for_each_online_cpu(j) {
 		     struct cpu_dbs_info_s *dbs_info;
 		     dbs_info = &per_cpu(cs_cpu_dbs_info, j);
-		     dbs_info->prev_cpu_idle = get_cpu_idle_time(j,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0) || defined(CPU_IDLE_TIME_IN_CPUFREQ) /* overrule for sources with backported cpufreq implementation */
-		 &dbs_info->prev_cpu_wall, 0);
-#else
-		 &dbs_info->prev_cpu_wall);
-#endif /* LINUX_VERSION_CODE... */
+		     dbs_info->prev_cpu_idle = get_cpu_idle_time(j,&dbs_info->prev_cpu_wall, 0);
 		 if (dbs_tuners_ins.ignore_nice)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 		     dbs_info->prev_cpu_nice = kcpustat_cpu(j).cpustat[CPUTIME_NICE];
@@ -7343,12 +7318,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 
 		j_dbs_info = &per_cpu(cs_cpu_dbs_info, j);
 
-		cur_idle_time = get_cpu_idle_time(j,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0) || defined(CPU_IDLE_TIME_IN_CPUFREQ)	/* overrule for sources with backported cpufreq implementation */
-		     &cur_wall_time, 0);
-#else
-		     &cur_wall_time);
-#endif /* LINUX_VERSION_CODE... */
+		cur_idle_time = get_cpu_idle_time(j,&cur_wall_time, 0);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
 		wall_time = (unsigned int)
 				(cur_wall_time - j_dbs_info->prev_cpu_wall);
@@ -8785,7 +8755,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 	struct cpu_dbs_info_s *this_dbs_info;
 	unsigned int j;
 	int rc;
-#ifdef ENABLE_HOTPLUGGING
+#if defined(ENABLE_HOTPLUGGING) && !defined(SNAP_NATIVE_HOTPLUGGING)
 	int i = 0;
 #endif /* ENABLE_HOTPLUGGING */
 	this_dbs_info = &per_cpu(cs_cpu_dbs_info, cpu);
@@ -8801,12 +8771,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 			j_dbs_info = &per_cpu(cs_cpu_dbs_info, j);
 			j_dbs_info->cur_policy = policy;
 
-			j_dbs_info->prev_cpu_idle = get_cpu_idle_time(j,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,10,0) || defined(CPU_IDLE_TIME_IN_CPUFREQ)	/* ZZ: overrule for sources with backported cpufreq implementation */
-			&j_dbs_info->prev_cpu_wall, 0);
-#else
-			&j_dbs_info->prev_cpu_wall);
-#endif /* LINUX_VERSION_CODE... */
+			j_dbs_info->prev_cpu_idle = get_cpu_idle_time(j,&j_dbs_info->prev_cpu_wall, 0);
 			if (dbs_tuners_ins.ignore_nice) {
 			    j_dbs_info->prev_cpu_nice =
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)
@@ -8831,16 +8796,14 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 		    freq_init_count = 0;					// ZZ: reset init flag for governor reload
 		    system_freq_table = cpufreq_frequency_get_table(0);		// ZZ: update static system frequency table
 		    evaluate_scaling_order_limit_range(1, 0, 0, policy->min, policy->max);	// ZZ: table order detection and limit optimizations
-		
-#ifdef ENABLE_HOTPLUGGING
-			// ZZ: save default values in threshold array
-			for (i = 0; i < possible_cpus; i++) {
-			    hotplug_thresholds[0][i] = DEF_FREQUENCY_UP_THRESHOLD_HOTPLUG;
-			    hotplug_thresholds[1][i] = DEF_FREQUENCY_DOWN_THRESHOLD_HOTPLUG;
-			}
-
+		}
+#if defined(ENABLE_HOTPLUGGING) && !defined(SNAP_NATIVE_HOTPLUGGING)
+		// ZZ: save default values in threshold array
+		for (i = 0; i < possible_cpus; i++) {
+		    hotplug_thresholds[0][i] = DEF_FREQUENCY_UP_THRESHOLD_HOTPLUG;
+		    hotplug_thresholds[1][i] = DEF_FREQUENCY_DOWN_THRESHOLD_HOTPLUG;
+		}
 #endif /* ENABLE_HOTPLUGGING */
-                }    
 		mutex_init(&this_dbs_info->timer_mutex);
 		dbs_enable++;
 		/*
@@ -9147,4 +9110,3 @@ fs_initcall(cpufreq_gov_dbs_init);
 module_init(cpufreq_gov_dbs_init);
 #endif /* CONFIG_CPU_FREQ_DEFAULT_GOV_ZZMOOVE */
 module_exit(cpufreq_gov_dbs_exit);
-
