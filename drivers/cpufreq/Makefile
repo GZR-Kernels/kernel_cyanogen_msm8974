@@ -18,6 +18,7 @@ obj-$(CONFIG_CPU_FREQ_GOV_OPTIMAX)	   += cpufreq_optimax.o
 obj-$(CONFIG_CPU_FREQ_GOV_DANCEDANCE)	   += cpufreq_dancedance.o
 obj-$(CONFIG_CPU_FREQ_GOV_DARKNESS)	   += cpufreq_darkness.o
 obj-$(CONFIG_CPU_FREQ_GOV_LIONHEART)       += cpufreq_lionheart.o
+obj-$(CONFIG_CPU_FREQ_GOV_PEGASUSQ)	   += cpufreq_pegasusq.o
 obj-$(CONFIG_FINGERPRINT_BOOST)		   += fp-boost.o
 
 # CPUfreq cross-arch helpers

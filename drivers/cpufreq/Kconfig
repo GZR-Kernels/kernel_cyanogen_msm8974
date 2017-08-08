@@ -154,6 +154,10 @@ config CPU_FREQ_DEFAULT_GOV_LIONHEART
         help
         Use the CPUFreq governor 'lionheart' as default.
 
+config CPU_FREQ_DEFAULT_GOV_PEGASUSQ
+	bool "pegasusq"
+select CPU_FREQ_GOV_PEGASUSQ
+
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -281,6 +285,9 @@ config CPU_FREQ_GOV_LIONHEART
         help
         lionheart' - a "smart" optimized governor!
         If in doubt, say N.
+
+config CPU_FREQ_GOV_PEGASUSQ
+tristate "'pegasusq' cpufreq policy governor"
 
 config FINGERPRINT_BOOST
 	bool "Fingerprint Boost"
