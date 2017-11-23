@@ -174,6 +174,8 @@ int usbnet_generic_cdc_bind(struct usbnet *dev, struct usb_interface *intf)
 				dev_dbg(&intf->dev, "extra CDC union\n");
 				goto bad_desc;
 			}
+			if (len < sizeof(struct usb_cdc_union_desc))
+				break;
 			info->u = (void *) buf;
 			if (info->u->bLength != sizeof *info->u) {
 				dev_dbg(&intf->dev, "CDC union len %u\n",
