@@ -7,7 +7,7 @@ set -e
 ## Copy this script inside the kernel directory
 
 KERNEL_DIR=$PWD
-KERNEL_TOOLCHAIN=$KERNEL_DIR/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-
+KERNEL_TOOLCHAIN=$KERNEL_DIR/toolchain-4.9/bin/arm-eabi-
 KERNEL_DEFCONFIG=StarCity_defconfig
 DTBTOOL=$KERNEL_DIR/AnyKernel2/tools
 JOBS=5
