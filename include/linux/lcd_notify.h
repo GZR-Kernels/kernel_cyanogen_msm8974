@@ -17,10 +17,10 @@ struct lcd_event {
 };
 
 #ifdef CONFIG_FB_MSM_MDSS
-int lcd_register_client(struct notifier_block *nb);
+/*int lcd_register_client(struct notifier_block *nb);
 int lcd_unregister_client(struct notifier_block *nb);
 int lcd_notifier_call_chain(unsigned long val, void *v);
-#else
+#else*/
 static int inline lcd_register_client(struct notifier_block *nb)
 {
 	return -ENOENT;
