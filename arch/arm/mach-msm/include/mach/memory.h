@@ -20,6 +20,51 @@
 /* physical offset of RAM */
 #define PLAT_PHYS_OFFSET UL(CONFIG_PHYS_OFFSET)
 
+#if defined(CONFIG_KEXEC_HARDBOOT)
+
+#if defined(CONFIG_MACH_APQ8064_FLO)
+#define KEXEC_HB_PAGE_ADDR		UL(0x88C00000)
+
+#elif defined(CONFIG_MACH_APQ8064_MAKO)
+#define KEXEC_HB_PAGE_ADDR		UL(0x88600000)
+/*
+
+80200000-88dfffff : System RAM
+  80208000-810ad21f : Kernel code
+  8121e000-8163e293 : Kernel data
+
+0x80200000 to 0x88dfffff and the mem-min value I've selected is
+MR_KEXEC_MEM_MIN = 0x85000000.
+*/
+#elif defined(CONFIG_MACH_MSM8974_HAMMERHEAD)
+#define KEXEC_HB_PAGE_ADDR		UL(0x10100000)
+#define KEXEC_HB_KERNEL_LOC		UL(0x3208000)
+
+#elif defined(CONFIG_MACH_OPPO_MSM8974)
+#define KEXEC_HB_PAGE_ADDR		UL(0x2F600000)
+#define KEXEC_HB_KERNEL_LOC		UL(0x3208000)
+/* MR_KEXEC_MEM_MIN := 0x20000000 */
+
+/* ham (ZUK Z1) */
+#elif defined(CONFIG_MACH_SHENQI_K9)
+#define KEXEC_HB_PAGE_ADDR		UL(0x03e00000)
+/* #define KEXEC_HB_KERNEL_LOC		UL(0x3208000) */
+/*
+00000000-045fffff : System RAM
+  00008000-010550eb : Kernel code
+  01216000-016dcb53 : Kernel data
+0d200000-0d3fffff : System RAM
+0d500000-016dcb53 : System RAM
+
+MR_KEXEC_MEM_MIN := 0x03000000
+*/
+
+#else
+#error "Adress for kexec hardboot page not defined"
+
+#endif
+#endif
+
 #define MAX_PHYSMEM_BITS 32
 #define SECTION_SIZE_BITS 28
 
