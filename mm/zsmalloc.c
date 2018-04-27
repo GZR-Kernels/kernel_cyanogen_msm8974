@@ -132,12 +132,19 @@
 #define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS - OBJ_TAG_BITS)
 #define OBJ_INDEX_MASK	((_AC(1, UL) << OBJ_INDEX_BITS) - 1)
 
+#define CLASS_IDX_BITS  28
+#define FULLNESS_BITS   4
+#define CLASS_IDX_MASK  ((1 << CLASS_IDX_BITS) - 1)
+#define FULLNESS_MASK   ((1 << FULLNESS_BITS) - 1)
+
 #define MAX(a, b) ((a) >= (b) ? (a) : (b))
 /* ZS_MIN_ALLOC_SIZE must be multiple of ZS_ALIGN */
 #define ZS_MIN_ALLOC_SIZE \
 	MAX(32, (ZS_MAX_PAGES_PER_ZSPAGE << PAGE_SHIFT >> OBJ_INDEX_BITS))
 /* each chunk includes extra space to keep handle */
 #define ZS_MAX_ALLOC_SIZE	PAGE_SIZE
+#define ZS_SIZE_CLASSES	DIV_ROUND_UP(ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE, \
+				     ZS_SIZE_CLASS_DELTA)
 
 /*
  * On systems with 4K page size, this gives 255 size classes! There is a
@@ -245,7 +252,7 @@ struct link_free {
 struct zs_pool {
 	char *name;
 
-	struct size_class **size_class;
+	struct size_class **size_class[ZS_SIZE_CLASSES];
 	struct kmem_cache *handle_cachep;
 
 	gfp_t flags;	/* allocation flags used when growing pool */
@@ -260,11 +267,6 @@ struct zs_pool {
  * A zspage's class index and fullness group
  * are encoded in its (first)page->mapping
  */
-#define CLASS_IDX_BITS	28
-#define FULLNESS_BITS	4
-#define CLASS_IDX_MASK	((1 << CLASS_IDX_BITS) - 1)
-#define FULLNESS_MASK	((1 << FULLNESS_BITS) - 1)
-
 struct mapping_area {
 #ifdef CONFIG_PGTABLE_MAPPING
 	struct vm_struct *vm; /* vm area for mapping object that span pages */
@@ -437,7 +439,7 @@ static int get_size_class_index(int size)
 		idx = DIV_ROUND_UP(size - ZS_MIN_ALLOC_SIZE,
 				ZS_SIZE_CLASS_DELTA);
 
-	return min(zs_size_classes - 1, idx);
+        return min((int)ZS_SIZE_CLASSES - 1, idx);
 }
 
 #ifdef CONFIG_ZSMALLOC_STAT
@@ -493,7 +495,7 @@ static int zs_stats_size_show(struct seq_file *s, void *v)
 			"obj_allocated", "obj_used", "pages_used",
 			"pages_per_zspage");
 
-	for (i = 0; i < zs_size_classes; i++) {
+	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
 		class = pool->size_class[i];
 
 		if (class->index != i)
@@ -1200,17 +1202,6 @@ static void zs_unregister_cpu_notifier(void)
 	cpu_notifier_register_done();
 }
 
-static void init_zs_size_classes(void)
-{
-	int nr;
-
-	nr = (ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) / ZS_SIZE_CLASS_DELTA + 1;
-	if ((ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) % ZS_SIZE_CLASS_DELTA)
-		nr += 1;
-
-	zs_size_classes = nr;
-}
-
 static bool can_merge(struct size_class *prev, int size, int pages_per_zspage)
 {
 	if (prev->pages_per_zspage != pages_per_zspage)
@@ -1759,7 +1750,7 @@ unsigned long zs_compact(struct zs_pool *pool)
 	unsigned long nr_migrated = 0;
 	struct size_class *class;
 
-	for (i = zs_size_classes - 1; i >= 0; i--) {
+        for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
 		class = pool->size_class[i];
 		if (!class)
 			continue;
@@ -1792,12 +1783,6 @@ struct zs_pool *zs_create_pool(char *name, gfp_t flags)
 	if (!pool)
 		return NULL;
 
-	pool->size_class = kcalloc(zs_size_classes, sizeof(struct size_class *),
-			GFP_KERNEL);
-	if (!pool->size_class) {
-		kfree(pool);
-		return NULL;
-	}
 
 	pool->name = kstrdup(name, GFP_KERNEL);
 	if (!pool->name)
@@ -1810,7 +1795,7 @@ struct zs_pool *zs_create_pool(char *name, gfp_t flags)
 	 * Iterate reversly, because, size of size_class that we want to use
 	 * for merging should be larger or equal to current size.
 	 */
-	for (i = zs_size_classes - 1; i >= 0; i--) {
+        for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
 		int size;
 		int pages_per_zspage;
 		struct size_class *class;
@@ -1871,7 +1856,7 @@ void zs_destroy_pool(struct zs_pool *pool)
 
 	zs_pool_stat_destroy(pool);
 
-	for (i = 0; i < zs_size_classes; i++) {
+        for (i = 0; i < ZS_SIZE_CLASSES; i++) { 
 		int fg;
 		struct size_class *class = pool->size_class[i];
 
@@ -1903,8 +1888,6 @@ static int __init zs_init(void)
 
 	if (ret)
 		goto notifier_fail;
-
-	init_zs_size_classes();
 
 #ifdef CONFIG_ZPOOL
 	zpool_register_driver(&zs_zpool_driver);
