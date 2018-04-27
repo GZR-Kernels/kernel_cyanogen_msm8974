@@ -252,7 +252,7 @@ struct link_free {
 struct zs_pool {
 	char *name;
 
-	struct size_class **size_class[ZS_SIZE_CLASSES];
+	struct size_class *size_class[ZS_SIZE_CLASSES];
 	struct kmem_cache *handle_cachep;
 
 	gfp_t flags;	/* allocation flags used when growing pool */
