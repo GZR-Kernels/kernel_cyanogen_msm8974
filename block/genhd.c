@@ -1550,12 +1550,7 @@ void disk_flush_events(struct gendisk *disk, unsigned int mask)
 	ev->clearing |= mask;
 	if (!ev->block) {
 		cancel_delayed_work(&ev->dwork);
-<<<<<<< HEAD
 		queue_delayed_work(system_freezable_power_efficient_wq, &ev->dwork, 0);
-=======
-		queue_delayed_work(system_freezable_power_efficient_wq,
-				&ev->dwork, 0);
->>>>>>> b424daf... block: queue work on power efficient wq
 	}
 	spin_unlock_irq(&ev->lock);
 }
@@ -1629,13 +1624,7 @@ static void disk_events_workfn(struct work_struct *work)
 
 	intv = disk_events_poll_jiffies(disk);
 	if (!ev->block && intv)
-<<<<<<< HEAD
 		queue_delayed_work(system_freezable_power_efficient_wq, &ev->dwork, intv);
-=======
-		queue_delayed_work(system_freezable_power_efficient_wq,
-				&ev->dwork, intv);
->>>>>>> b424daf... block: queue work on power efficient wq
-
 	spin_unlock_irq(&ev->lock);
 
 	/*
