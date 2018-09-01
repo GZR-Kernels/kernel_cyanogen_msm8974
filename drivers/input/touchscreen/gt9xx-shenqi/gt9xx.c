@@ -54,7 +54,7 @@
 #if GTP_ICS_SLOT_REPORT
     #include <linux/input/mt.h>
 #endif
-#include <linux/qpnp/vibrator.h>
+
 
 #define GOODIX_DEV_NAME "Goodix-CTP"
 static struct workqueue_struct *goodix_wq;
@@ -70,9 +70,6 @@ struct i2c_client * i2c_connect_client = NULL;
 #define RESET_DELAY_T4 6
 #define GTP_I2C_ADDRESS_HIGH	0x14
 #define GTP_I2C_ADDRESS_LOW	0x5D
-
-#define VIBRATE_STRENGTH 27
-
 u8 config[GTP_CONFIG_MAX_LENGTH + GTP_ADDR_LENGTH]
                 = {GTP_REG_CONFIG_DATA >> 8, GTP_REG_CONFIG_DATA & 0xff};
 
@@ -770,7 +767,6 @@ static void goodix_ts_work_func(struct work_struct *work)
                 input_sync(ts->input_dev);
                 input_report_key(ts->input_dev, KEY_WAKEUP, 0);
                 input_sync(ts->input_dev);
-		vibrate(VIBRATE_STRENGTH);
 				}
                 // clear 0x814B
                 doze_buf[2] = 0x00;
