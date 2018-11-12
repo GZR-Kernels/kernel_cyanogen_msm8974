@@ -129,6 +129,16 @@ config CPU_FREQ_DEFAULT_GOV_NIGHTMARE
 	select CPU_FREQ_GOV_NIGHTMARE
 	help
 
+config CPU_FREQ_DEFAULT_GOV_ALUCARD
+	bool "alucard"
+	select CPU_FREQ_GOV_ALUCARD
+	help
+
+config CPU_FREQ_DEFAULT_GOV_OPTIMAX
+	bool "optimax"
+	select CPU_FREQ_GOV_OPTIMAX
+	select CPU_FREQ_GOV_PERFORMANCE
+
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -234,6 +244,14 @@ config CPU_FREQ_GOV_ZZMOOVE
           frequency lookup tables and optimized scaling triggers instead of
           % frequency steps to get smooth up/downscaling dependant on CPU load.
           If in doubt, say N.
+
+config CPU_FREQ_GOV_ALUCARD
+	tristate "'alucard' cpufreq governor"
+	depends on CPU_FREQ
+
+config CPU_FREQ_GOV_OPTIMAX
+	tristate "'optimax' cpufreq policy governor"
+	select CPU_FREQ_TABLE
 
 menu "x86 CPU frequency scaling drivers"
 depends on X86
