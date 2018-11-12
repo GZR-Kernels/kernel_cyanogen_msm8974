@@ -124,6 +124,12 @@ void __init sched_clock_register(u64 (*read)(void), int bits,
 	/* calculate the mult/shift to convert counter ticks to ns. */
 	clocks_calc_mult_shift(&new_mult, &new_shift, rate, NSEC_PER_SEC, 3600);
 
+	if (sched_clock_timer.function != NULL) {
+		/* update timeout for clock wrap */
+		hrtimer_start(&sched_clock_timer, cd.wrap_kt, HRTIMER_MODE_REL);
+	}
+
+
 	new_mask = CLOCKSOURCE_MASK(bits);
 
 	/* calculate how many ns until we wrap */
